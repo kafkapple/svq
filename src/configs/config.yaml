@@ -1,0 +1,38 @@
+defaults:
+  - experiment/default
+  # Remove the duplicate hydra/job_logging entry
+
+# Hydra configuration
+hydra:
+  job_logging:
+    root:
+      level: INFO
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.num}
+
+# Experiment configuration
+experiment:
+  name: svq_default
+  seed: 42
+  device: cuda
+  
+# Visualization settings
+visualization:
+  enabled: true
+  save_dir: ${hydra.run.dir}/visualizations
+  formats: ["png", "pdf"]
+  
+# Logging settings
+logging:
+  level: INFO
+  save_dir: ${hydra.run.dir}/logs
+  
+# Checkpoint settings
+checkpoint:
+  enabled: true
+  save_dir: ${hydra.run.dir}/checkpoints
+  save_best_only: false
+  save_frequency: 10

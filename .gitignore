@@ -1,3 +1,5 @@
+*.pt
+checkpoint_*.pt
 # Python-generated files
 __pycache__/
 *.py[oc]

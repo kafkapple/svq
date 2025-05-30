@@ -1,0 +1,67 @@
+# Default experiment configuration for SVQ model
+
+# Dataset configuration
+dataset:
+  name: "shapes"  # Options: shapes, multidsprites
+  batch_size: 32
+  num_workers: 4
+  num_samples: 10000
+  image_size: 64
+  max_shapes: 4
+
+# Model configuration
+model:
+  # Slot Attention parameters
+  num_slots: 4
+  num_iterations: 3
+  slot_size: 64
+  hidden_dim: 64
+  
+  # Vector Quantization parameters
+  num_codebooks: 4
+  codebook_size: 512
+  code_dim: 16
+  commitment_cost: 0.25
+  
+  # Autoregressive Prior parameters
+  use_prior: true
+  prior:
+    embed_dim: 128
+    num_heads: 8
+    num_layers: 4
+    dropout: 0.1
+
+# Training configuration
+training:
+  num_epochs: 100
+  learning_rate: 0.0001
+  recon_loss_weight: 1.0
+  commitment_loss_weight: 0.25
+  save_interval: 10
+  eval_interval: 5
+
+# Visualization configuration
+visualization:
+  # Embedding visualization methods
+  embedding_viz:
+    methods: ["tsne", "umap", "pca"]
+    perplexity: 30  # for t-SNE
+    n_neighbors: 15  # for UMAP
+    
+  # Clustering methods
+  clustering:
+    methods: ["kmeans", "dbscan", "hierarchical"]
+    n_clusters: 10  # for K-means and hierarchical
+    eps: 0.5  # for DBSCAN
+    
+  # Output formats
+  output_formats: ["images", "graphs", "tables"]
+  
+# Ablation study configuration
+ablation:
+  enabled: false
+  components:
+    - "slot_attention_iterations"
+    - "num_codebooks"
+    - "autoregressive_prior"
+    - "cross_attention"
