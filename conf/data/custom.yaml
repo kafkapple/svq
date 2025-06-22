@@ -1,0 +1,46 @@
+data:
+  name: custom
+  dataset_type: shapes  # or multidsprites
+  
+  # Shapes dataset parameters
+  shapes:
+    num_samples: 10000
+    image_size: 128
+    num_objects: [1, 3]  # min and max number of objects
+    object_types: ["circle", "square", "triangle"]
+    colors: ["red", "green", "blue", "yellow", "cyan", "magenta"]
+    size_range: [0.1, 0.3]  # relative to image size
+    
+  # MultiDsprites dataset parameters
+  multidsprites:
+    num_samples: 10000
+    image_size: 128
+    num_sprites: [1, 4]  # min and max number of sprites
+    sprite_types: ["square", "ellipse", "heart"]
+    colors: ["red", "green", "blue", "yellow", "cyan", "magenta"]
+    scale_range: [0.1, 0.3]
+    rotation_range: [0, 360]
+    
+  train:
+    root_dir: data/train
+    batch_size: 32
+    num_workers: 4
+    image_size: 128
+    shuffle: true
+    pin_memory: true
+    
+  val:
+    root_dir: data/val
+    batch_size: 32
+    num_workers: 4
+    image_size: 128
+    shuffle: false
+    pin_memory: true
+    
+  test:
+    root_dir: data/test
+    batch_size: 32
+    num_workers: 4
+    image_size: 128
+    shuffle: false
+    pin_memory: true 

@@ -1,0 +1,105 @@
+# 학습 설정
+# training:  # 이 줄 제거 (Hydra가 자동으로 training 네임스페이스를 추가함)
+
+# 기본 학습 설정
+num_epochs: 100
+batch_size: 32
+num_workers: 4
+pin_memory: true
+learning_rate: 0.0001
+weight_decay: 0.0001
+
+# 옵티마이저 설정
+optimizer:
+  name: adam
+  lr: 0.0001
+  betas: [0.9, 0.999]
+  weight_decay: 0.0001
+  eps: 1e-8
+  # 추가 옵티마이저 설정
+  sgd:
+    momentum: 0.9
+    nesterov: true
+
+# 스케줄러 설정
+scheduler:
+  name: cosine
+  eta_min: 1e-5
+  T_max: 100
+  # 추가 스케줄러 설정
+  step:
+    step_size: 30
+    gamma: 0.1
+  plateau:
+    mode: min
+    factor: 0.1
+    patience: 10
+    verbose: true
+
+# 손실 함수 가중치
+loss:
+  reconstruction_weight: 1.0
+  commitment_weight: 0.25
+  perceptual_weight: 0.1
+  kl_weight: 0.1
+
+# Mixed Precision 설정
+mixed_precision:
+  enabled: true
+  dtype: float16
+
+# 그래디언트 클리핑 설정
+gradient_clipping:
+  enabled: true
+  max_norm: 1.0
+
+# Early Stopping 설정
+early_stopping:
+  enabled: true
+  patience: 10
+  min_delta: 0.0001
+  monitor: val_loss
+  mode: min
+
+# 체크포인트 설정
+checkpoint:
+  enabled: true
+  save_dir: checkpoints
+  save_best_only: true
+  save_frequency: 5
+  monitor: val_loss
+  mode: min
+  filename: best_model.pth
+  last_filename: last_model.pth
+
+# 로깅 설정
+logging:
+  log_frequency: 10
+  tensorboard: true
+  wandb: false
+  wandb_project: svq
+  wandb_entity: null
+  wandb_name: ${experiment.name}
+  wandb_tags: []
+  wandb_config: {}
+
+# 검증 설정
+validation:
+  frequency: 1  # 에폭당 검증 횟수
+  metrics:
+    - loss
+    - psnr
+    - ssim
+    - disentanglement_score
+
+# 디버그 설정
+debug:
+  enabled: false
+  num_samples: 100
+  debug_num_epochs: 2
+  debug_batch_size: 4
+  debug_num_workers: 0
+  debug_mixed_precision: false
+  debug_gradient_clipping: false
+  debug_tensorboard: true
+  log_level: DEBUG 

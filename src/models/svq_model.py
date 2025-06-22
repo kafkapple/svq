@@ -116,9 +116,7 @@ class SVQ(nn.Module):
         num_slots=4,
         num_iterations=3,
         slot_size=64,
-        num_codebooks=4,
-        codebook_size=512,
-        code_dim=16,
+        vq=None,  # VQ 설정을 받도록 수정
         hidden_dim=64,
         commitment_cost=0.25,
         decoder_type="cnn"
@@ -130,9 +128,7 @@ class SVQ(nn.Module):
             num_slots: 슬롯 수 (N)
             num_iterations: 슬롯 어텐션 반복 횟수
             slot_size: 슬롯 차원 (D)
-            num_codebooks: 코드북 수 (M)
-            codebook_size: 각 코드북의 크기 (K)
-            code_dim: 각 코드의 차원 (d_c)
+            vq: VQ 설정 딕셔너리
             hidden_dim: 은닉층 차원
             commitment_cost: 커밋먼트 손실 가중치
             decoder_type: 디코더 타입 ("cnn" 또는 "transformer")
@@ -144,12 +140,17 @@ class SVQ(nn.Module):
         self.num_slots = num_slots
         self.num_iterations = num_iterations
         self.slot_size = slot_size
-        self.num_codebooks = num_codebooks
-        self.codebook_size = codebook_size
-        self.code_dim = code_dim
         self.hidden_dim = hidden_dim
         self.commitment_cost = commitment_cost
         self.decoder_type = decoder_type
+        
+        # VQ 설정 검증
+        if vq is None:
+            raise ValueError("VQ 설정이 필요합니다.")
+        
+        self.num_codebooks = vq.get('num_codebooks', 128)
+        self.codebook_size = vq.get('num_embeddings', 512)
+        self.code_dim = vq.get('embedding_dim', 128)
         
         # 슬롯 어텐션 인코더
         self.encoder = SlotAttentionEncoder(
@@ -165,9 +166,9 @@ class SVQ(nn.Module):
         self.quantizer = SemanticVectorQuantizer(
             num_slots=num_slots,
             slot_dim=slot_size,
-            num_codebooks=num_codebooks,
-            codebook_size=codebook_size,
-            code_dim=code_dim,
+            num_codebooks=self.num_codebooks,
+            codebook_size=self.codebook_size,
+            code_dim=self.code_dim,
             commitment_cost=commitment_cost
         )
         

@@ -1,0 +1,41 @@
+# 기본 설정
+defaults:
+  - _self_
+  - model: svq
+  - data: clevr
+  - training: default
+  - visualization: default
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+# 실행 모드 설정
+mode: train  # train, evaluate, visualize, ablation
+
+# 실험 설정
+experiment:
+  name: svq_default
+  seed: 42
+  device: cpu
+  timestamp: ${now:%Y-%m-%d_%H-%M-%S}
+  debug: false
+
+# 데이터셋 설정은 conf/data/clevr.yaml에서 자동으로 로드됨
+# 여기서는 추가 설정만 정의
+
+# Hydra 설정
+hydra:
+  run:
+    dir: outputs/${experiment.name}/${now:%Y-%m-%d_%H-%M-%S}
+  sweep:
+    dir: outputs/${experiment.name}
+    subdir: ${now:%Y-%m-%d_%H-%M-%S}
+  job:
+    chdir: true
+  verbose: false
+
+# 로깅 설정
+logging:
+  level: INFO
+  save_dir: ${hydra.run.dir}/logs
+  tensorboard: true
+  log_frequency: 10 

@@ -1,0 +1,143 @@
+# 시각화 설정
+enabled: true
+save_dir: visualizations
+style: whitegrid  # seaborn 허용 스타일로 변경
+visualization_frequency: 5  # 에폭당 시각화 횟수
+num_samples: 16  # 시각화할 샘플 수
+image_size: 128  # 시각화 이미지 크기
+num_slots: 7  # 시각화할 슬롯 수
+use_grid: true  # 그리드 레이아웃 사용 여부
+show_attention: true  # 어텐션 맵 표시 여부
+show_reconstruction: true  # 재구성 결과 표시 여부
+show_slots: true  # 슬롯 시각화 여부
+show_metrics: true  # 메트릭 표시 여부
+colormap: viridis  # 어텐션 맵 컬러맵
+dpi: 100  # 이미지 DPI
+format: png  # 저장 형식
+debug: false  # 디버그 모드
+
+# 임베딩 시각화 설정
+embedding:
+  methods: [tsne, umap, pca]
+  tsne:
+    perplexity: 30
+    n_iter: 1000
+    random_state: 42
+  umap:
+    n_neighbors: 15
+    min_dist: 0.1
+    random_state: 42
+  pca:
+    n_components: 2
+    random_state: 42
+
+# 클러스터링 시각화 설정
+clustering:
+  methods: [kmeans, dbscan]
+  kmeans:
+    n_clusters: 8
+    random_state: 42
+  dbscan:
+    eps: 0.5
+    min_samples: 5
+
+# 슬롯 시각화 설정
+slot:
+  num_slots: 4
+  show_masks: true
+  show_reconstructions: true
+  show_attention: true
+
+# 코드북 시각화 설정
+codebook:
+  show_usage: true
+  show_embeddings: true
+  show_clusters: true
+
+# 시각화 빈도 및 수량
+frequency:
+  per_epoch: 1
+  num_batches: 1
+  num_images: 4
+  num_slots: 4
+  codebook_size: 16
+
+# 메트릭 및 통계
+metrics:
+  - psnr
+  - ssim
+  - disentanglement_score
+  - slot_usage
+  - codebook_usage
+  - reconstruction_error
+
+# Ablation study 설정
+ablation:
+  enabled: false
+  save_dir: ablation
+  experiments:
+    - name: baseline
+      description: 기본 모델
+      config: {}
+      metrics:
+        - psnr
+        - ssim
+        - disentanglement_score
+    - name: no_codebook
+      description: 코드북 없음
+      config:
+        model:
+          use_codebook: false
+      metrics:
+        - psnr
+        - ssim
+        - disentanglement_score
+    - name: no_slots
+      description: 슬롯 없음
+      config:
+        model:
+          use_slots: false
+      metrics:
+        - psnr
+        - ssim
+        - reconstruction_error
+  execution:
+    num_runs: 3
+    seed_range: [42, 43, 44]
+    statistical_test: true
+    test_method: wilcoxon
+    significance_level: 0.05
+
+# 시각화 타입
+types:
+  metrics:
+    - bar
+    - line
+    - scatter
+  embeddings:
+    - scatter
+    - heatmap
+  clustering:
+    - scatter
+    - grid
+  codebook_usage:
+    - bar
+    - heatmap
+  slot_usage:
+    - bar
+    - heatmap
+  reconstruction:
+    - grid
+    - comparison
+  disentanglement:
+    - bar
+    - scatter
+  training:
+    - line
+    - scatter
+  validation:
+    - line
+    - scatter
+  testing:
+    - bar
+    - scatter 

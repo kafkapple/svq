@@ -1,0 +1,63 @@
+# CLEVR 데이터셋 설정
+name: clevr
+data_dir: data/clevr  # CLEVR 데이터셋 디렉토리
+
+# 데이터셋 경로 설정
+paths:
+  raw_dir: data/raw/clevr
+  processed_dir: data/processed/clevr
+  download_dir: data/raw/clevr
+  url: https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0.zip
+  checksum: null  # 다운로드 파일의 체크섬 (선택사항)
+
+# 데이터셋 다운로드 및 전처리 설정
+download: true
+preprocess: true
+force_download: false
+force_preprocess: false
+
+# 데이터셋 분할 설정
+train:
+  image_size: 128
+  num_objects: [3, 6]  # 최소/최대 객체 수
+  colors: ['red', 'blue', 'green', 'yellow', 'purple', 'brown', 'cyan', 'gray']
+  shapes: ['cube', 'sphere', 'cylinder']
+  materials: ['rubber', 'metal']
+  sizes: ['small', 'large']
+  batch_size: 32
+  num_workers: 4
+  shuffle: true
+  pin_memory: true
+  root_dir: ${paths.processed_dir}/train
+  scenes_json: ${paths.raw_dir}/scenes/CLEVR_train_scenes.json
+  questions_json: ${paths.raw_dir}/questions/CLEVR_train_questions.json
+
+val:
+  image_size: 128
+  num_objects: [3, 6]
+  colors: ['red', 'blue', 'green', 'yellow', 'purple', 'brown', 'cyan', 'gray']
+  shapes: ['cube', 'sphere', 'cylinder']
+  materials: ['rubber', 'metal']
+  sizes: ['small', 'large']
+  batch_size: 32
+  num_workers: 4
+  shuffle: false
+  pin_memory: true
+  root_dir: ${paths.processed_dir}/val
+  scenes_json: ${paths.raw_dir}/scenes/CLEVR_val_scenes.json
+  questions_json: ${paths.raw_dir}/questions/CLEVR_val_questions.json
+
+test:
+  image_size: 128
+  num_objects: [3, 6]
+  colors: ['red', 'blue', 'green', 'yellow', 'purple', 'brown', 'cyan', 'gray']
+  shapes: ['cube', 'sphere', 'cylinder']
+  materials: ['rubber', 'metal']
+  sizes: ['small', 'large']
+  batch_size: 32
+  num_workers: 4
+  shuffle: false
+  pin_memory: true
+  root_dir: ${paths.processed_dir}/test
+  scenes_json: ${paths.raw_dir}/scenes/CLEVR_test_scenes.json
+  questions_json: ${paths.raw_dir}/questions/CLEVR_test_questions.json 

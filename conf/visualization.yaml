@@ -1,0 +1,280 @@
+# 시각화 설정
+
+# 기본 설정
+visualization:
+  enabled: true
+  save_dir: ${hydra:run.dir}/visualizations
+  style: seaborn
+  colormap: viridis
+  dpi: 300
+  formats: ["png", "pdf", "html"]
+  
+  # 시각화 주기 및 수량
+  frequency:
+    epoch: 1  # 에폭당 시각화 횟수
+    batch: 10  # 배치당 로깅 주기
+    num_batches: 1  # 시각화할 배치 수
+    num_images: 4  # 시각화할 이미지 수
+    num_slots: 8  # 시각화할 슬롯 수
+    codebook_size: 512  # 시각화할 코드북 크기
+
+  # 임베딩 시각화
+  embedding:
+    methods: ["tsne", "umap", "pca"]
+    params:
+      tsne:
+        perplexity: 30
+        n_components: 2
+        random_state: 42
+      umap:
+        n_neighbors: 15
+        min_dist: 0.1
+        n_components: 2
+        random_state: 42
+      pca:
+        n_components: 2
+        random_state: 42
+
+  # 클러스터링 시각화
+  clustering:
+    methods: ["kmeans", "dbscan", "hierarchical"]
+    params:
+      kmeans:
+        n_clusters: [2, 4, 8, 16]
+        random_state: 42
+      dbscan:
+        eps: 0.5
+        min_samples: 5
+      hierarchical:
+        n_clusters: [2, 4, 8, 16]
+        linkage: ["ward", "complete", "average"]
+
+  # 슬롯 시각화
+  slots:
+    show_attention_maps: true
+    show_reconstructions: true
+    show_disentanglement: true
+    num_samples: 16
+    metrics:
+      - activation_rate
+      - activation_entropy
+      - activation_diversity
+      - activation_correlation
+
+  # 코드북 시각화
+  codebook:
+    show_embeddings: true
+    show_usage: true
+    show_histogram: true
+    metrics:
+      - usage_count
+      - usage_frequency
+      - usage_entropy
+      - usage_diversity
+
+  # 학습 시각화
+  training:
+    plot_metrics: true
+    metrics:
+      - loss
+      - reconstruction_loss
+      - commitment_loss
+      - codebook_loss
+      - slot_loss
+      - mask_loss
+    plot_lr: true
+    plot_gradients: true
+
+  # 검증 시각화
+  validation:
+    metrics:
+      - loss
+      - reconstruction_loss
+      - commitment_loss
+      - codebook_loss
+      - slot_loss
+      - mask_loss
+      - psnr
+      - ssim
+      - disentanglement_score
+
+  # 테스트 시각화
+  test:
+    metrics:
+      - loss
+      - reconstruction_loss
+      - commitment_loss
+      - codebook_loss
+      - slot_loss
+      - mask_loss
+      - psnr
+      - ssim
+      - disentanglement_score
+      - slot_usage_mean
+      - slot_usage_std
+      - slot_diversity_mean
+      - slot_diversity_std
+
+  # Ablation Study 설정
+  ablation:
+    enabled: true
+    save_dir: ${hydra:run.dir}/ablation_studies
+    experiments:
+      # 기본 모델 변형
+      - name: baseline
+        description: 기본 모델
+        config: ${model}
+        metrics:
+          - loss
+          - reconstruction_loss
+          - commitment_loss
+          - codebook_loss
+          - slot_loss
+          - mask_loss
+          - psnr
+          - ssim
+          - disentanglement_score
+
+      # 모델 구성 요소 제거
+      - name: no_codebook
+        description: 코드북 없음
+        config:
+          model:
+            use_codebook: false
+        metrics: ${visualization.ablation.experiments.0.metrics}
+
+      - name: no_slots
+        description: 슬롯 없음
+        config:
+          model:
+            use_slots: false
+        metrics: ${visualization.ablation.experiments.0.metrics}
+
+      - name: no_masks
+        description: 마스크 없음
+        config:
+          model:
+            use_masks: false
+        metrics: ${visualization.ablation.experiments.0.metrics}
+
+      # 손실 함수 변형
+      - name: no_commitment
+        description: 커밋먼트 손실 없음
+        config:
+          model:
+            use_commitment_loss: false
+        metrics: ${visualization.ablation.experiments.0.metrics}
+
+      - name: no_diversity
+        description: 다양성 손실 없음
+        config:
+          model:
+            use_diversity_loss: false
+        metrics: ${visualization.ablation.experiments.0.metrics}
+
+      # 모델 파라미터 변형
+      - name: fewer_slots
+        description: 슬롯 수 감소
+        config:
+          model:
+            slot_attention:
+              num_slots: 4
+        metrics: ${visualization.ablation.experiments.0.metrics}
+
+      - name: smaller_codebook
+        description: 코드북 크기 감소
+        config:
+          model:
+            vq:
+              num_embeddings: 256
+        metrics: ${visualization.ablation.experiments.0.metrics}
+
+      - name: larger_slot_dim
+        description: 슬롯 차원 증가
+        config:
+          model:
+            slot_attention:
+              slot_dim: 128
+        metrics: ${visualization.ablation.experiments.0.metrics}
+
+    # Ablation 실험 시각화
+    visualization:
+      # 메트릭 비교
+      metrics:
+        type: bar
+        layout:
+          title: "Ablation Study Results"
+          xlabel: "Experiment"
+          ylabel: "Value"
+          figsize: [12, 8]
+          style: seaborn
+          colormap: viridis
+
+      # 임베딩 시각화
+      embeddings:
+        type: scatter
+        layout:
+          title: "Embedding Visualization"
+          figsize: [10, 10]
+          style: seaborn
+          colormap: viridis
+
+      # 클러스터링 시각화
+      clustering:
+        type: scatter
+        layout:
+          title: "Clustering Results"
+          figsize: [10, 10]
+          style: seaborn
+          colormap: viridis
+
+      # 코드북 사용 시각화
+      codebook:
+        type: bar
+        layout:
+          title: "Codebook Usage"
+          xlabel: "Codebook Index"
+          ylabel: "Usage Count"
+          figsize: [12, 6]
+          style: seaborn
+          colormap: viridis
+
+      # 슬롯 사용 시각화
+      slots:
+        type: heatmap
+        layout:
+          title: "Slot Usage Patterns"
+          xlabel: "Slot Index"
+          ylabel: "Feature"
+          figsize: [10, 8]
+          style: seaborn
+          colormap: viridis
+
+      # 재구성 시각화
+      reconstruction:
+        type: grid
+        layout:
+          title: "Reconstruction Results"
+          figsize: [15, 10]
+          style: seaborn
+          colormap: viridis
+
+    # Ablation 실험 실행 설정
+    execution:
+      num_runs: 3  # 각 실험 반복 횟수
+      seed_range: [42, 43, 44]  # 실험별 시드
+      save_all_runs: true  # 모든 실행 결과 저장
+      compare_baseline: true  # 기준 모델과 비교
+      statistical_test: true  # 통계적 유의성 검정
+      test_method: "wilcoxon"  # 통계 검정 방법
+      significance_level: 0.05  # 유의 수준
+
+    # Ablation 실험 결과 저장
+    results:
+      save_format: ["yaml", "csv", "json"]
+      save_visualizations: true
+      save_model_checkpoints: true
+      save_tensorboard: true
+      save_configs: true
+      save_metrics: true
+      save_statistics: true 

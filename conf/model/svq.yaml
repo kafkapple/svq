@@ -1,0 +1,53 @@
+# SVQ 모델 설정
+name: svq
+
+# Slot Attention parameters
+slot_attention:
+  num_slots: 7
+  num_iterations: 3
+  slot_dim: 128
+  mlp_hidden_dim: 128
+  attention_dropout: 0.1
+  
+# Vector Quantization parameters
+vq:
+  num_embeddings: 512
+  embedding_dim: 128
+  num_codebooks: 128
+  commitment_cost: 0.25
+  decay: 0.99
+  
+# Encoder parameters
+encoder:
+  input_channels: 3
+  hidden_channels: [64, 128, 256, 512]
+  kernel_size: 4
+  stride: 2
+  padding: 1
+  
+# Decoder parameters
+decoder:
+  output_channels: 3
+  hidden_channels: [512, 256, 128, 64]
+  kernel_size: 4
+  stride: 2
+  padding: 1
+  
+# Prior parameters
+prior:
+  embed_dim: 128
+  num_heads: 8
+  num_layers: 6
+  dropout: 0.1
+  max_seq_len: 128
+  use_absolute_pos: true
+  use_relative_pos: true
+  
+# Ablation study parameters
+ablation:
+  use_slot_attention: true
+  use_vq: true
+  use_autoregressive_prior: true
+  use_cross_attention: true
+  num_slot_iterations: [1, 3, 5, 7]  # For ablation study
+  num_codebooks: [128, 256, 512]    # slot_dim의 약수들로 수정 

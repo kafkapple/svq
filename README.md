@@ -19,6 +19,7 @@ SVQ(Semantic Vector-Quantized Variational Autoencoder)는 객체 중심 학습�
 - Python 3.7+
 - PyTorch 1.9+
 - CUDA 지원 (선택 사항)
+- Hydra 1.3+
 
 ### 설치 단계
 
@@ -44,67 +45,200 @@ svq_project/
 │   │   ├── transformer_decoder.py # 트랜스포머 디코더 모듈
 │   │   └── svq_model.py          # SVQ 모델 구현
 │   ├── data/
-│   │   └── toy_datasets.py       # 토이 데이터셋 구현
+│   │   ├── __init__.py          # 데이터 패키지 초기화
+│   │   └── datasets.py          # 데이터셋 구현
 │   ├── utils/
-│   │   └── visualization.py      # 시각화 유틸리티
-│   ├── configs/
-│   │   ├── config.yaml           # 기본 설정 파일
-│   │   └── experiment/           # 실험별 설정 파일
-│   └── train.py                  # 학습 스크립트
+│   │   ├── metrics.py           # 메트릭 계산 유틸리티
+│   │   ├── checkpoint.py        # 체크포인트 관리
+│   │   └── visualization.py     # 시각화 유틸리티
+│   └── train.py                 # 학습 스크립트
 ├── conf/
-│   ├── ablation/                 # Ablation 실험 설정
-│   └── visualization/            # 시각화 설정
-├── requirements.txt              # 필요한 패키지 목록
-└── README.md                     # 프로젝트 설명
+│   ├── config.yaml              # 기본 설정 파일
+│   ├── ablation/                # Ablation 실험 설정
+│   └── visualization.yaml       # 시각화 설정
+├── main.py                      # 메인 실행 스크립트
+├── requirements.txt             # 필요한 패키지 목록
+└── README.md                    # 프로젝트 설명
 ```
 
 ## 사용 방법
 
-### 학습
+### 실행 모드
 
-기본 설정으로 모델을 학습하려면:
+프로젝트는 다음 네 가지 실행 모드를 지원합니다:
+
+1. **학습 (train)**: 모델 학습
+   ```bash
+   python main.py mode=train
+   ```
+
+2. **평가 (evaluate)**: 학습된 모델 평가
+   ```bash
+   python main.py mode=evaluate
+   ```
+
+3. **시각화 (visualize)**: 모델 결과 시각화
+   ```bash
+   python main.py mode=visualize
+   ```
+
+4. **Ablation (ablation)**: Ablation study 실행
+   ```bash
+   python main.py mode=ablation
+   ```
+
+### 데이터셋 선택
+
+현재 지원하는 데이터셋:
+
+1. **CLEVR 데이터셋**:
+   ```bash
+   python main.py mode=train data=clevr
+   ```
+   - 3D 객체 (큐브, 구, 실린더)
+   - 다양한 색상과 재질
+   - 설정 가능한 객체 수 (기본값: 3-6개)
+
+2. **Shapes 데이터셋** (준비 중):
+   ```bash
+   python main.py mode=train data=shapes
+   ```
+   - 2D 도형 (원, 사각형, 삼각형)
+   - 기본 색상 (빨강, 초록, 파랑)
+   - 설정 가능한 객체 수
+
+3. **MultiDsprites 데이터셋** (준비 중):
+   ```bash
+   python main.py mode=train data=multidsprites
+   ```
+   - dSprites 스타일의 2D 스프라이트
+   - 다양한 색상과 모양
+   - 설정 가능한 객체 수
+
+### 설정 커스터마이징
+
+Hydra를 통해 설정을 커스터마이징할 수 있습니다:
+
+1. **데이터셋 설정**:
+   ```bash
+   # 객체 수 변경
+   python main.py mode=train data=clevr data.train.num_objects=[2,4]
+   
+   # 이미지 크기 변경
+   python main.py mode=train data=clevr data.train.image_size=64
+   
+   # 배치 크기 변경
+   python main.py mode=train data=clevr data.train.batch_size=16
+   ```
+
+2. **학습 설정**:
+   ```bash
+   # 학습률 변경
+   python main.py mode=train training.learning_rate=0.0005
+   
+   # 옵티마이저 변경
+   python main.py mode=train training.optimizer_type=sgd
+   
+   # 스케줄러 변경
+   python main.py mode=train training.scheduler_type=step
+   ```
+
+3. **시각화 설정**:
+   ```bash
+   # 시각화 빈도 변경
+   python main.py mode=train visualization.frequency.per_epoch=2
+   
+   # 시각화 방법 선택
+   python main.py mode=visualize visualization.embedding.methods=[pca]
+   ```
+
+### 디버그 모드
+
+디버그 모드를 활성화하여 빠른 테스트를 수행할 수 있습니다:
 
 ```bash
-python -m src.train
+python main.py mode=train debug.enabled=true
 ```
 
-특정 설정 파일을 사용하려면:
+디버그 모드에서는:
+- 더 작은 데이터셋 사용 (100 샘플)
+- 더 적은 에폭 실행 (2 에폭)
+- 더 작은 배치 사이즈 사용 (4)
+- 상세한 로깅 활성화 (DEBUG 레벨)
+- 텐서보드 로깅 활성화
+- 그래디언트와 파라미터 히스토그램 시각화
 
-```bash
-python -m src.train --config-name=experiment/my_experiment
-```
+### 체크포인트 관리
 
-하이퍼파라미터를 명령줄에서 직접 변경하려면:
+체크포인트는 자동으로 저장되며, 다음과 같이 관리됩니다:
 
-```bash
-python -m src.train model.num_slots=6 training.learning_rate=0.0002
-```
+1. **저장 위치**:
+   - 기본: `outputs/실험이름/타임스탬프/checkpoints/`
+   - 디버그 모드: `outputs/실험이름/타임스탬프/debug/checkpoints/`
 
-### 시각화
+2. **저장 내용**:
+   - 모델 상태 (`model_state_dict`)
+   - 옵티마이저 상태 (`optimizer_state_dict`)
+   - 스케줄러 상태 (`scheduler_state_dict`)
+   - 현재 에폭 (`epoch`)
+   - 학습/검증 손실 (`train_loss`, `val_loss`)
+   - 검증 메트릭 (`val_metrics`)
+   - 설정 (`config`)
 
-학습 중 시각화는 TensorBoard를 통해 확인할 수 있습니다:
+3. **저장 정책**:
+   - 최고 성능 모델 저장 (`save_best_only=true`)
+   - 주기적 저장 (`save_frequency=10`)
+   - 모니터링 메트릭: `val_loss` (최소화)
 
-```bash
-tensorboard --logdir=logs
-```
+### 로깅 및 시각화
 
-## 토이 데이터셋
+1. **텐서보드 로깅**:
+   ```bash
+   tensorboard --logdir outputs/실험이름/타임스탬프/tensorboard
+   ```
+   - 학습/검증 손실
+   - 메트릭 (PSNR, SSIM, 분해 점수)
+   - 학습률
+   - 그래디언트/파라미터 히스토그램 (디버그 모드)
+
+2. **시각화 결과**:
+   - 위치: `outputs/실험이름/타임스탬프/visualizations/`
+   - 재구성 결과
+   - 슬롯 분할
+   - 임베딩 시각화
+   - 코드북 사용 통계
+
+## 데이터셋
 
 이 프로젝트는 두 가지 간단한 2D 토이 데이터셋을 제공합니다:
 
 1. **ShapesDataset**: 다양한 색상과 모양(원, 사각형, 삼각형)의 도형을 포함하는 이미지
-2. **MultiDspritesDataset**: dSprites 스타일의 여러 스프라이트를 포함하는 이미지
+   - 기본 도형: 원, 사각형, 삼각형
+   - 기본 색상: 빨강, 초록, 파랑
+   - 설정 가능한 파라미터: 이미지 크기, 객체 수, 색상, 크기 범위
 
-데이터셋 예시:
+2. **MultiDspritesDataset**: dSprites 스타일의 여러 스프라이트를 포함하는 이미지
+   - 기본 도형: 사각형, 타원, 하트
+   - 기본 색상: 빨강, 초록, 파랑, 노랑, 마젠타, 시안
+   - 설정 가능한 파라미터: 이미지 크기, 객체 수, 색상, 크기 범위
+
+데이터셋 사용 예시:
 
 ```python
-from src.data.toy_datasets import ShapesDataset
+from src.data import ShapesDataset, get_data_loaders
 
-# 데이터셋 생성
-dataset = ShapesDataset(num_samples=1000, image_size=64, max_shapes=4)
+# 데이터셋 직접 사용
+dataset = ShapesDataset(
+    num_samples=1000,
+    image_size=64,
+    num_objects=4,
+    object_types=['circle', 'square', 'triangle'],
+    colors=['red', 'green', 'blue'],
+    size_range=(0.1, 0.3)
+)
 
-# 샘플 시각화
-dataset.visualize_samples(num_samples=5, save_path="samples.png")
+# 데이터 로더 사용
+train_loader, val_loader = get_data_loaders(cfg)
 ```
 
 ## 모델 구성 요소
@@ -177,19 +311,73 @@ prior = AutoregressiveTransformer(
 )
 ```
 
-## Ablation Study
+## 시각화
 
-모델의 다양한 구성 요소에 대한 ablation study를 실행할 수 있습니다:
+시각화는 `conf/visualization.yaml`에서 설정할 수 있으며, 다음 항목들을 시각화할 수 있습니다:
 
+1. **재구성 결과**: 원본 이미지와 재구성된 이미지 비교
+2. **슬롯 분할**: 각 슬롯이 담당하는 이미지 영역
+3. **코드북 사용**: 코드북의 사용 빈도와 패턴
+4. **임베딩**: t-SNE, UMAP, PCA를 사용한 임베딩 시각화
+5. **클러스터링**: K-means, DBSCAN 등의 클러스터링 결과
+
+시각화 실행:
 ```bash
-python -m src.train ablation.enabled=true
+python main.py visualize --config-name config
 ```
 
-기본적으로 다음 구성 요소에 대한 ablation이 수행됩니다:
-- 슬롯 어텐션 (반복 횟수 감소)
-- 벡터 양자화 (코드북 수 감소)
-- 오토리그레시브 프라이어 (사용/미사용)
-- 크로스 어텐션 (CNN 디코더로 대체)
+## Ablation Study
+
+Ablation study는 모델의 다양한 구성 요소의 영향을 분석합니다:
+
+1. **기본 모델 변형**:
+   - 슬롯 어텐션 (반복 횟수 감소)
+   - 벡터 양자화 (코드북 수 감소)
+   - 오토리그레시브 프라이어 (사용/미사용)
+   - 크로스 어텐션 (CNN 디코더로 대체)
+
+2. **실행 설정**:
+   - 각 실험 3회 실행 (다른 시드 사용)
+   - 통계적 유의성 검정 (Wilcoxon 검정)
+   - 결과 저장 (YAML, CSV, JSON)
+
+Ablation study 실행:
+```bash
+python main.py ablation --config-name config
+```
+
+## 메트릭
+
+다음 메트릭들을 계산하고 추적합니다:
+
+1. **재구성 품질**:
+   - PSNR (Peak Signal-to-Noise Ratio)
+   - SSIM (Structural Similarity Index)
+
+2. **분해 품질**:
+   - 분해 점수 (슬롯과 마스크 간의 상관관계)
+   - 슬롯 사용 통계 (활성화율, 다양성)
+
+3. **학습 메트릭**:
+   - 손실값 (재구성, 커밋먼트, 프라이어)
+   - 학습률
+   - 그래디언트 통계
+
+## 체크포인트
+
+체크포인트 관리 기능을 통해 모델 상태를 저장하고 복원할 수 있습니다:
+
+1. **저장 내용**:
+   - 모델 상태
+   - 옵티마이저 상태
+   - 스케줄러 상태
+   - 현재 에폭
+   - 메트릭
+
+2. **저장 주기**:
+   - 최고 성능 모델
+   - 주기적 저장
+   - 최종 모델
 
 ## 환경별 사용 안내
 
@@ -198,153 +386,16 @@ python -m src.train ablation.enabled=true
 CUDA를 사용하려면 `device` 설정을 `cuda`로 지정하세요:
 
 ```bash
-python -m src.train device=cuda
-```
-
-CUDA가 사용 가능한지 확인하려면:
-
-```python
-import torch
-print(f"CUDA available: {torch.cuda.is_available()}")
-print(f"CUDA device count: {torch.cuda.device_count()}")
+python main.py mode=train device=cuda
+python main.py mode=train +debug.enabled=true
 ```
 
 ### Windows 및 Linux 호환성
 
-이 코드는 Windows와 Linux 모두에서 테스트되었습니다. 다음 사항에 주의하세요:
+이 코드는 Windows와 Linux 모두에서 테스트되었습니다:
 
 - **Windows**: 데이터 로더의 `num_workers` 설정이 0보다 큰 경우 `if __name__ == "__main__":` 블록 내에서 코드를 실행해야 합니다.
 - **Linux**: 특별한 설정 없이 실행 가능합니다.
-
-## 결과 해석
-
-### 학습 결과
-
-학습 중 다음과 같은 결과를 확인할 수 있습니다:
-
-1. **재구성 이미지**: 모델이 입력 이미지를 얼마나 잘 재구성하는지 보여줍니다.
-2. **슬롯 분할**: 각 슬롯이 이미지의 어떤 부분을 담당하는지 보여주는 마스크입니다.
-3. **코드북 사용 통계**: 각 코드북의 코드가 얼마나 자주 사용되는지 보여줍니다.
-
-### 생성 결과
-
-오토리그레시브 프라이어를 학습한 후에는 새로운 이미지를 생성할 수 있습니다:
-
-```python
-# 모델 로드
-model = SVQ(...)
-model.load_state_dict(torch.load("checkpoints/best_model.pth")["model_state_dict"])
-model.init_prior(...)
-
-# 이미지 생성
-generated_images = model.generate(batch_size=8, temperature=1.0)
-```
-
-## 예제 코드
-
-### 전체 학습 예제
-
-```python
-from src.models.svq_model import SVQ
-from src.data.toy_datasets import get_data_loaders
-import torch
-import torch.optim as optim
-
-# 데이터 로더 생성
-train_loader, val_loader = get_data_loaders(
-    dataset_name='shapes',
-    batch_size=32,
-    num_workers=4,
-    num_samples=10000,
-    image_size=64,
-    max_shapes=4
-)
-
-# 모델 생성
-model = SVQ(
-    image_size=64,
-    in_channels=3,
-    num_slots=4,
-    num_iterations=3,
-    slot_size=64,
-    num_codebooks=4,
-    codebook_size=512,
-    code_dim=16,
-    hidden_dim=64,
-    commitment_cost=0.25
-)
-
-# 오토리그레시브 프라이어 초기화 (선택적)
-model.init_prior(
-    embed_dim=128,
-    num_heads=8,
-    num_layers=4,
-    dropout=0.1
-)
-
-# 옵티마이저 설정
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
-
-# 학습 루프
-for epoch in range(100):
-    for batch_idx, data in enumerate(train_loader):
-        # 모델 순전파
-        outputs = model(data)
-        
-        # 손실 계산
-        loss, loss_dict = model.compute_loss(
-            data,
-            outputs,
-            recon_loss_weight=1.0,
-            commitment_loss_weight=0.25
-        )
-        
-        # 역전파 및 최적화
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-```
-
-### 시각화 예제
-
-```python
-import matplotlib.pyplot as plt
-import torch
-
-# 모델 로드
-model = SVQ(...)
-model.load_state_dict(torch.load("checkpoints/best_model.pth")["model_state_dict"])
-
-# 샘플 데이터
-data = next(iter(val_loader))
-
-# 모델 순전파
-outputs = model(data)
-
-# 결과 시각화
-plt.figure(figsize=(15, 5))
-
-# 원본 이미지
-plt.subplot(1, 3, 1)
-plt.imshow(data[0].permute(1, 2, 0).numpy())
-plt.title("Input")
-plt.axis("off")
-
-# 재구성 이미지
-plt.subplot(1, 3, 2)
-plt.imshow(outputs["recon"][0].detach().permute(1, 2, 0).numpy())
-plt.title("Reconstruction")
-plt.axis("off")
-
-# 첫 번째 슬롯 마스크
-plt.subplot(1, 3, 3)
-plt.imshow(outputs["masks"][0, 0, 0].detach().numpy(), cmap="viridis")
-plt.title("Slot 1 Mask")
-plt.axis("off")
-
-plt.tight_layout()
-plt.savefig("visualization.png")
-```
 
 ## 참고 문헌
 
