@@ -215,13 +215,18 @@ class Visualizer:
         
         # 코드북 사용 통계
         usage_stats = model.get_codebook_usage_stats()
-        
-        # 사용 히스토그램
-        plt.figure(figsize=(12, 6))
-        plt.bar(range(len(usage_stats)), usage_stats.cpu())
-        plt.title('Codebook Usage Distribution')
-        plt.xlabel('Code Index')
-        plt.ylabel('Usage Count')
+
+        # usage_stats는 각 코드북에 대한 사용 정보를 담은 딕셔너리 리스트다.
+        # 기존 구현은 리스트에 대해 `.cpu()` 호출을 시도해 오류가 발생했다.
+        # 각 코드북의 사용량을 개별 히스토그램으로 시각화한다.
+        plt.figure(figsize=(12, 4 * len(usage_stats)))
+        for i, stat in enumerate(usage_stats, start=1):
+            plt.subplot(len(usage_stats), 1, i)
+            plt.bar(range(len(stat['usage_count'])), stat['usage_count'])
+            plt.title(f"Codebook {stat['codebook_idx']} Usage")
+            plt.xlabel('Code Index')
+            plt.ylabel('Usage Count')
+        plt.tight_layout()
         plt.savefig(save_dir / f'codebook_usage_epoch_{epoch}.png')
         plt.close()
         
