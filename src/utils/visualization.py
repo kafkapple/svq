@@ -213,12 +213,21 @@ class Visualizer:
         """코드북 시각화"""
         save_dir.mkdir(parents=True, exist_ok=True)
         
-        # 코드북 사용 통계
+        # 코드북 사용 통계 (list of dicts)
         usage_stats = model.get_codebook_usage_stats()
-        
+
+        # 통계에서 usage_count만 추출하여 배열로 변환
+        usage_counts = []
+        for stat in usage_stats:
+            count = stat.get('usage_count')
+            if isinstance(count, torch.Tensor):
+                count = count.detach().cpu().numpy()
+            usage_counts.append(count)
+        usage_counts = np.asarray(usage_counts)
+
         # 사용 히스토그램
         plt.figure(figsize=(12, 6))
-        plt.bar(range(len(usage_stats)), usage_stats.cpu())
+        plt.bar(range(len(usage_counts)), usage_counts)
         plt.title('Codebook Usage Distribution')
         plt.xlabel('Code Index')
         plt.ylabel('Usage Count')
