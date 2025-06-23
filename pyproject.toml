@@ -1,7 +1,7 @@
 [project]
 name = "svq-project"
 version = "0.1.0"
-description = "Add your description here"
+description = "Semantic Vector-Quantized Variational Autoencoder implementation"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
